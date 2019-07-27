@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="UTF-8">
+    <title>Simple PDF.js with zoom</title>
+    <script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@2.1.266/build/pdf.min.js"></script>
+    <style>
+        button {
+            background: #fff;
+            border: 1px solid #000;
+            font-size:20px;
+            padding: 5px;
+            font-weight: bolder;
+            cursor: pointer;
+            border-radius: 50%;
+        }   
+    </style>
+</head>
+
+<body>
+    <button id="prevbutton" type="button">&#8249;</button>
+    <button id="nextbutton" type="button">&#8250;</button>
+    <button id="zoominbutton" type="button">+</button>
+    <button id="zoomoutbutton" type="button">-</button>
+    <br><br>
+
+
+    <canvas id="the-canvas" style="border:1px  solid black"></canvas>
+
+    <script id="script">
+        var pageNum = 1;
+        var pdfScale = 1;
+        var shownPdf;
+        var url = 'https://www.cratosys.com/assets/pdf/terms.pdf'; // PDF to load: change this to a file that exists;
+
+        function renderPage(page) {
+            var scale = pdfScale; // render with global pdfScale variable
+            var viewport = page.getViewport(scale);
+            var canvas = document.getElementById('the-canvas');
+            var context = canvas.getContext('2d');
+            canvas.height = viewport.height;
+            canvas.width = viewport.width;
+            var renderContext = {
+                canvasContext: context,
+                viewport: viewport
+            };
+            page.render(renderContext);
+        }
+
+        function displayPage(pdf, num) {
+            pdf.getPage(num).then(function getPage(page) { renderPage(page); });
+        }
+
+        var pdfDoc = pdfjsLib.getDocument(url).then(function initPdf(pdf) {
+            displayPage(pdf, 1);
+            shownPdf = pdf;
+        });
+
+        var nextbutton = document.getElementById("nextbutton");
+        nextbutton.onclick = function () {
+            if (pageNum >= shownPdf.numPages) {
+                alert("Last Page Reached");
+                return;
+            }
+            pageNum++;
+            displayPage(shownPdf, pageNum);
+        }
+
+        var prevbutton = document.getElementById("prevbutton");
+        prevbutton.onclick = function () {
+            if (pageNum <= 1) {
+                alert("First Page Reached");
+                return;
+            }
+            pageNum--;
+            displayPage(shownPdf, pageNum);
+        }
+
+        var zoominbutton = document.getElementById("zoominbutton");
+        zoominbutton.onclick = function () {
+            pdfScale += 0.25;
+            displayPage(shownPdf, pageNum);
+        }
+
+        var zoomoutbutton = document.getElementById("zoomoutbutton");
+        zoomoutbutton.onclick = function () {
+            if (pdfScale <= 0.25) {
+                return;
+            }
+            pdfScale -= 0.25;
+            displayPage(shownPdf, pageNum);
+        }
+    </script>
+</body>
+
+</html>
